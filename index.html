@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartBotTrading – Live Performance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            padding: 40px;
+        }
+        .card {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            display: inline-block;
+            min-width: 300px;
+        }
+        .stat {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>SmartBotTrading – Live Stats</h1>
+
+<div class="card">
+    <div class="stat">Gain: <span id="gain">Lädt...</span></div>
+    <div class="stat">Balance: <span id="balance">Lädt...</span></div>
+    <div class="stat">Profit: <span id="profit">Lädt...</span></div>
+    <div class="stat">Drawdown: <span id="drawdown">Lädt...</span></div>
+    <div class="stat">Letzte 50 Trades: <span id="trades">Lädt...</span></div>
+    <div class="stat">Winrate (50): <span id="winrate">Lädt...</span></div>
+</div>
+
+<script>
+async function loadStats() {
+    try {
+        const res = await fetch('/.netlify/functions/myfxbook-stats');
+        const data = await res.json();
+
+        if (data.error) throw new Error(data.message);
+
+        document.getElementById("gain").innerText = data.gain + "%";
+        document.getElementById("balance").innerText = data.currency + data.balance;
+        document.getElementById("profit").innerText = data.currency + data.profit;
+        document.getElementById("drawdown").innerText = data.drawdown + "%";
+        document.getElementById("trades").innerText = data.last50Trades;
+
+        const winrate = data.last50Trades > 0
+            ? Math.round((data.last50Wins / data.last50Trades) * 100)
+            : 0;
+
+        document.getElementById("winrate").innerText = winrate + "%";
+
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+loadStats();
+setInterval(loadStats, 60000);
+</script>
+
+</body>
+</html>
